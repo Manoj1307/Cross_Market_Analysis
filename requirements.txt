@@ -1,0 +1,8 @@
+pandas
+ipykernel
+PyMySQL
+requests
+yfinance
+sqlalchemy
+streamlit
+streamlit_option_menu
