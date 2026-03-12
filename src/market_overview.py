@@ -10,31 +10,42 @@ def get_connection():
     )
     return conn
 
-def getids():
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT ID, MARKET_CAP_RANK FROM CRYPTOCURRENCIES ORDER BY MARKET_CAP_RANK")
-        ids = [row["ID"] for row in cursor.fetchall()]
-        cursor.close()
-        conn.close()
-        return ids
-
-def get_price(selected_id):
+def get_avg_price():
     conn = get_connection()
     cursor = conn.cursor()
-    query = "SELECT CURRENT_PRICE FROM CRYPTOCURRENCIES WHERE ID = %s"
-    cursor.execute(query, (selected_id))
-    row = cursor.fetchone()
+    queries = {"OIL":"SELECT AVG(PRICE_INR) AS AVG_PRICE FROM OIL_PRICES;",
+             "BITCOIN":"SELECT AVG(PRICE_INR) AS AVG_PRICE FROM CRYPTO_PRICES WHERE COIN_ID = 'BITCOIN'",
+             "S&P 500":"SELECT AVG(CLOSE) AS AVG_PRICE FROM STOCK_PRICES WHERE TICKER = 'GSPC'",
+             "NIFTY":"SELECT AVG(CLOSE) AS AVG_PRICE FROM STOCK_PRICES WHERE TICKER = 'NSEI'"
+             }
+    results = {}
+    for name, query in queries.items():
+        cursor.execute(query)
+        row = cursor.fetchone()
+        results[name] = row["AVG_PRICE"] if row else None
     cursor.close()
     conn.close()
-    return row["CURRENT_PRICE"] if row else None
-
-def get_avg_price(selected_id, sdate, edate):
+    return results
+def get_market_comparison():
     conn = get_connection()
     cursor = conn.cursor()
-    query = f"SELECT AVG(PRICE_INR) AS AVERAGE_PRICE FROM CRYPTO_PRICES WHERE COIN_ID = %s AND DATE >= '{sdate}' AND DATE <= '{edate}'"
-    cursor.execute(query, (selected_id))
-    row = cursor.fetchone()
+
+    query = """
+    SELECT s.DATE,
+           s.CLOSE AS STOCK_PRICE,
+           o.PRICE_INR AS OIL_PRICE,
+           c.PRICE_INR AS BTC_PRICE
+    FROM STOCK_PRICES s
+    JOIN OIL_PRICES o ON s.DATE = o.DATE
+    JOIN CRYPTO_PRICES c ON s.DATE = c.DATE
+    WHERE s.TICKER='GSPC' AND c.COIN_ID='bitcoin'
+    ORDER BY s.DATE
+    """
+
+    cursor.execute(query)
+    rows = cursor.fetchall()
+
     cursor.close()
     conn.close()
-    return row["AVERAGE_PRICE"] if row else None
+
+    return rows

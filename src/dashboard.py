@@ -3,6 +3,7 @@ from streamlit_option_menu import option_menu
 import market_overview as mo
 import querry_runner as qr
 import top_crypto_analysis as ta
+import pandas as pd
 
 st.set_page_config(layout='wide')
 
@@ -12,28 +13,18 @@ with st.sidebar:
 def market_overview():
     st.header('Market Overview')
     st.write('This section provides an overview of the market trends and key Indicators.')
-    ids = mo.getids()
-    selected_id = st.selectbox("", options= ids, index = 0)
-    price = mo.get_price(selected_id)
-    if price is not None:
-        st.metric("Current Price", f"₹{price:,.2f}")
-    else:
-        st.warning("No data found")
-    col1, col2 = st.columns(2)
-    with col1:
-        sdate= st.date_input("Start Date")
-    with col2:
-        edate = st.date_input("End Date")
-    if st.button('Analyse'):
-        col3, col4, col5 = st.columns(3)
-        with col3:
-            ids = ta.getids()
-            selected_id = st.selectbox("", options= ids, index = 0)
-            avg_price = mo.get_avg_price(selected_id, sdate, edate)
-            if avg_price is not None:
-                st.metric("Average Price", f"₹{avg_price:,.2f}")
-            else:
-                st.warning("No data found")
+    col1, col2, col3, col4= st.columns(4)
+    data = mo.get_avg_price()
+    col1.metric("Avg Bitcoin Price", f"{data['BITCOIN']:.2f}")
+    col2.metric("Avg Oil Price", f"{data['OIL']:.2f}")
+    col3.metric("Avg S&P 500", f"{data['S&P 500']:.2f}")
+    col4.metric("Avg Nifty", f"{data['NIFTY']:.2f}")
+    col01, col0 = st.columns(2)
+    data = mo.get_market_comparison()
+
+    df = pd.DataFrame(data, columns=["DATE", "STOCK_PRICE", "OIL_PRICE", "BTC_PRICE"])
+
+    st.dataframe(df)
 
 def query_runner():
     st.title("🔍 Query Runner")
