@@ -108,8 +108,9 @@ The Streamlit dashboard allows users to:
 
 * Add correlation heatmaps between markets
 * Implement predictive analytics
-* Add more assets (Gold, NASDAQ, Ethereum)
+* Add more assets
 * Deploy the dashboard online
+* Visualize and corelate all the data with some BA tools
 
 ---
 
